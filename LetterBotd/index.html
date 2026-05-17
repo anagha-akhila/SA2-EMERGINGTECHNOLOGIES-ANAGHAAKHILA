@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LetterBotd — Core Film Intelligence Engine</title>
+    <style>
+        :root {
+            --bg-pure-black: #020305;   
+            --bg-pod-dark: rgba(13, 18, 24, 0.75);     
+            --border-slat: rgba(255, 255, 255, 0.05);     
+            --lb-orange: #ff8000;       
+            --gold-glow: #e9c46a;       
+            --lb-green: #00e054;        
+            --text-bright: #ffffff;    
+            --text-dim: #7d8c9e;        
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #000; color: var(--text-bright); display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
+
+        /* 🌌 Animated Cinematic Moving Background Layer */
+        .cinematic-bg-engine {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(255, 128, 0, 0.06) 0%, transparent 45%),
+                        radial-gradient(circle at 80% 70%, rgba(233, 196, 106, 0.05) 0%, transparent 50%),
+                        linear-gradient(180deg, #020305 0%, #05070a 100%);
+            z-index: -2;
+            background-size: 200% 200%;
+            animation: cosmicDrift 22s ease-in-out infinite alternate;
+        }
+        @keyframes cosmicDrift { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+
+        .ambient-grid-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.003) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.003) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: -1; opacity: 0.6;
+        }
+
+        /* Navigation Header Bar */
+        .top-navbar { display: flex; align-items: center; justify-content: space-between; background-color: rgba(3, 4, 7, 0.85); padding: 16px 32px; border-bottom: 1px solid var(--border-slat); backdrop-filter: blur(12px); z-index: 10; }
+        .brand-node { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
+        .brand-logo-orb { width: 10px; height: 10px; background: linear-gradient(45deg, var(--lb-orange), var(--gold-glow)); border-radius: 50%; box-shadow: 0 0 12px var(--gold-glow); }
+        .main-nav-tabs { display: flex; gap: 26px; font-size: 13px; color: var(--text-dim); font-weight: 600; }
+        .main-nav-tabs span { cursor: pointer; transition: color 0.2s; padding: 4px 0; }
+        .main-nav-tabs span:hover { color: white; }
+        .main-nav-tabs span.active { color: white; border-bottom: 2px solid var(--lb-orange); }
+
+        /* Real-Time Live Data News Ticker */
+        .live-ticker-strip { background: rgba(0,0,0,0.8); height: 38px; display: flex; align-items: center; border-bottom: 1px solid var(--border-slat); overflow: hidden; position: relative; backdrop-filter: blur(8px); z-index: 10; }
+        .ticker-badge { background: linear-gradient(135deg, var(--lb-orange), var(--gold-glow)); color: black; font-size: 10px; font-weight: 800; padding: 0 16px; height: 100%; display: flex; align-items: center; letter-spacing: 1px; z-index: 12; border-right: 1px solid var(--border-slat); }
+        .marquee-container { display: inline-block; white-space: nowrap; animation: textTrackScroll 60s linear infinite; font-size: 12px; color: var(--text-dim); font-weight: 500; }
+        @keyframes textTrackScroll { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+        /* Workspace Core Layout Framework Grid */
+        .workspace-frame { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 5; }
+
+        /* Left Side Column Panel Rail */
+        .left-pod-rail { width: 320px; background-color: rgba(3, 4, 7, 0.4); padding: 25px 16px; display: flex; flex-direction: column; gap: 26px; border-right: 1px solid var(--border-slat); overflow-y: auto; backdrop-filter: blur(4px); }
+        .rail-heading { font-size: 11px; font-weight: 700; color: #a4b3c6; letter-spacing: 1.5px; padding-left: 8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+        .rail-heading::before { content: ''; width: 4px; height: 12px; background: var(--lb-orange); border-radius: 2px; display: inline-block; }
+        .nodes-vertical-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        
+        .interactive-movie-node { 
+            background: linear-gradient(180deg, rgba(16, 22, 28, 0.75), rgba(10, 14, 18, 0.85));
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 16px; padding: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .interactive-movie-node:hover {
+            transform: translateY(-3px) scale(1.01); border-color: var(--lb-orange);
+            box-shadow: 0 10px 30px rgba(255,128,0,0.12); background: rgba(20, 28, 36, 0.9);
+        }
+        .node-details { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
+        .node-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .node-subtext { font-size: 11px; color: var(--text-dim); }
+        .node-rating-pill { font-size: 9px; font-weight: bold; background-color: rgba(255,255,255,0.05); padding: 3px 7px; border-radius: 6px; color: var(--lb-green); border: 1px solid rgba(255,255,255,0.03); }
+
+        /* Center Column Component: Conversational Stream Area */
+        .center-chat-canvas { flex: 1; display: flex; flex-direction: column; background-color: transparent; position: relative; }
+        .chat-scroll-area { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 26px; scroll-behavior: smooth; }
+        
+        /* Premium Glow Glass Blur Chat Bubbles */
+        .bubble-row { display: flex; gap: 16px; max-width: 85%; animation: fadeInElement 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeInElement { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .bubble-row.bot-flow { align-self: flex-start; }
+        .bubble-row.user-flow { align-self: flex-end; flex-direction: row-reverse; }
+        
+        .sphere-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
+        .bot-flow .sphere-avatar { background: linear-gradient(135deg, var(--lb-orange), var(--gold-glow)); color: black; }
+        .user-flow .sphere-avatar { background: #171c22; color: white; border-color: var(--border-slat); }
+
+        .bubble-text-wrapper { display: flex; flex-direction: column; gap: 5px; max-width: 100%; }
+        .identity-lbl { font-size: 11px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.5px; }
+        .user-flow .identity-lbl { text-align: right; }
+        
+        .bubble-markup-box { 
+            background: linear-gradient(145deg, rgba(15, 19, 24, 0.8), rgba(11, 14, 18, 0.85));
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 16px 20px; border-radius: 18px; font-size: 14px; line-height: 1.6;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35); backdrop-filter: blur(8px); color: #e2e8f0; white-space: pre-line; 
+        }
+        .user-flow .bubble-markup-box { background: rgba(22, 31, 40, 0.8); border-color: rgba(255,255,255,0.1); color: white; white-space: normal; }
+        
+        /* Sleek Uniform Glassmorphic Chip Controls */
+        .followup-prompt-container { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; width: 100%; }
+        .prompt-suggestion-chip { background: rgba(255, 128, 0, 0.08); border: 1px solid rgba(255, 128, 0, 0.15); color: var(--lb-orange); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
+        .prompt-suggestion-chip:hover { background: var(--lb-orange); color: #000; border-color: var(--lb-orange); transform: translateY(-1px); }
+
+        .entity-chip { color: var(--gold-glow); font-weight: 600; text-decoration: underline; cursor: pointer; transition: color 0.2s; }
+        .entity-chip:hover { color: var(--lb-orange); }
+        .accent-orange { color: var(--lb-orange); font-weight: 600; }
+        .review-card-wrapper { background: rgba(255,255,255,0.02); border-left: 3px solid var(--lb-orange); padding: 12px 16px; border-radius: 4px 12px 12px 4px; margin-top: 10px; max-height: 200px; overflow-y: auto; font-style: italic; color: #cbd5e1; }
+
+        /* ⏳ Typing Indicator Engine Layout */
+        .typing-indicator-row { display: none; gap: 8px; align-items: center; padding: 10px 20px; background: rgba(255,255,255,0.02); border-radius: 14px; align-self: flex-start; margin-left: 54px; font-size: 12px; color: var(--text-dim); font-weight: 500; }
+        .typing-dots { display: flex; gap: 4px; }
+        .typing-dots span { width: 6px; height: 6px; background: var(--lb-orange); border-radius: 50%; animation: blinkDots 1.4s infinite both; }
+        .typing-dots span:nth-child(2) { animation-delay: .2s; }
+        .typing-dots span:nth-child(3) { animation-delay: .4s; }
+        @keyframes blinkDots { 0%, 100% { opacity: .2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* Input Interaction Deck Area Component Layout */
+        .input-dock-panel { padding: 25px; background-color: rgba(3, 4, 7, 0.6); border-top: 1px solid var(--border-slat); position: relative; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 12px; }
+        .input-pill-container { display: flex; background-color: rgba(13, 17, 22, 0.85); border: 1px solid var(--border-slat); border-radius: 28px; padding: 6px 10px 6px 18px; gap: 14px; align-items: center; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-pill-container:focus-within { border-color: var(--lb-orange); box-shadow: 0 0 16px rgba(255, 128, 0, 0.15); }
+        input { flex: 1; background: none; border: none; color: white; padding: 10px 0; font-size: 14.5px; outline: none; }
+        
+        .premium-action-btn { 
+            background: linear-gradient(135deg, var(--lb-orange), var(--gold-glow)); 
+            border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 128, 0, 0.2); flex-shrink: 0;
+        }
+        .premium-action-btn:hover { transform: scale(1.05); opacity: 0.95; }
+        .premium-action-btn svg { width: 16px; height: 16px; fill: none; stroke: #000; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* Premium Autocomplete Dropdown Panel */
+        .autocomplete-dropdown { 
+            position: absolute; bottom: 145px; left: 25px; right: 25px; 
+            background: rgba(15, 22, 30, 0.96); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 16px; display: none; flex-direction: column; overflow: hidden; 
+            z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            backdrop-filter: blur(14px);
+        }
+        .autocomplete-row { 
+            padding: 14px 22px; font-size: 13.5px; cursor: pointer; color: #f1f5f9; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .autocomplete-row:hover { background-color: rgba(255, 128, 0, 0.15); color: var(--lb-orange); }
+        .autocomplete-row:last-child { border-bottom: none; }
+        .autocomplete-year { font-size: 11px; color: var(--text-dim); font-weight: 600; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
+
+        /* Right Side Pod Panel: Scaled Poster Module & Metadata Layout */
+        .right-pod-rail { width: 330px; background-color: rgba(3, 4, 7, 0.4); padding: 25px 20px; display: flex; flex-direction: column; gap: 24px; border-left: 1px solid var(--border-slat); overflow-y: auto; backdrop-filter: blur(4px); }
+        .ambient-plasma-card { background-color: var(--bg-pod-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 340px; box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+        .organic-blur-blob { width: 160px; height: 160px; background: linear-gradient(45deg, var(--lb-orange), var(--gold-glow), #ffb703); filter: blur(35px); border-radius: 50%; position: absolute; animation: wavePlasma 8s ease-in-out infinite alternate; opacity: 0.25; z-index: 1; }
+        @keyframes wavePlasma { 0% { transform: translate(-10px, -10px) scale(1); } 100% { transform: translate(15px, 15px) scale(1.2); } }
+        
+        .plasma-content-overlay { position: relative; z-index: 5; font-size: 13px; font-weight: 700; text-align: center; color: white; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .poster-frame { width: 170px; height: 255px; background-color: #000; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background-size: cover; background-position: center; margin-bottom: 14px; box-shadow: 0 12px 24px rgba(0,0,0,0.6); display: none; z-index: 15; cursor: zoom-in; transition: transform 0.2s ease; }
+        .poster-frame:hover { transform: scale(1.03); }
+
+        .stats-deck { display: flex; flex-direction: column; gap: 12px; }
+        .stat-pod-row { background: var(--bg-pod-dark); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .stat-pod-lbl { font-size: 11px; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .stat-pod-data { font-size: 14px; font-weight: 700; color: var(--lb-green); }
+        
+        /* Cross-session Memory Display Module Layout */
+        .stats-deck-mem { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+
+        /* Actor/Crew Profile Sheet Overlay Modals */
+        .actor-modal-sheet {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(3, 5, 8, 0.85); z-index: 999; display: none; 
+            align-items: center; justify-content: center; backdrop-filter: blur(16px);
+        }
+        .actor-modal-container { 
+            width: 480px; background: #0d1217; border: 1px solid rgba(255,255,255,0.08); 
+            border-radius: 24px; padding: 30px; position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 16px;
+        }
+        .close-modal-btn { 
+            position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.05); 
+            color: #fff; border: none; width: 32px; height: 32px; 
+            border-radius: 50%; font-weight: bold; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        .close-modal-btn:hover { background: rgba(255,255,255,0.15); }
+        .actor-header-row { display: flex; gap: 20px; align-items: center; margin-bottom: 10px; }
+        
+        .actor-pfp-frame { 
+            width: 90px; height: 90px; border-radius: 50% !important; border: 2px solid var(--gold-glow); 
+            background-size: cover; background-position: center top; background-repeat: no-repeat;
+            flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .actor-biometrics { display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; color: #e2e8f0; line-height: 1.5; }
+
+        /* Lightbox Image View Zoom styling */
+        .lightbox-modal { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:1000; display:none; align-items:center; justify-content:center; cursor:zoom-out; }
+        .lightbox-img { max-height:85vh; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.8); border:1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+
+    <div class="cinematic-bg-engine"></div>
+    <div class="ambient-grid-overlay"></div>
+
+    <div class="top-navbar">
+        <div class="brand-node">
+            <div class="brand-logo-orb"></div>
+            <span>🎥 LETTERBOTD</span>
+        </div>
+        <div class="main-nav-tabs" id="mainNavigationTabs">
+            <span class="active" onclick="switchNavTab('hub', this)">Cinephile Hub</span>
+            <span onclick="switchNavTab('trends', this)">Global Trends</span>
+            <span onclick="switchNavTab('logs', this)">System Logs</span>
+        </div>
+    </div>
+
+    <div class="live-ticker-strip">
+        <div class="ticker-badge">AGENT TELEMETRY ONLINE</div>
+        <div class="marquee-container" id="tickerTrack">
+            🛰️ CORE SYSTEM ONLINE: Ingesting active cross-session preference caching buffers and recommendation engines...
+        </div>
+    </div>
+
+    <div class="workspace-frame">
+        <div class="left-pod-rail">
+            <div>
+                <div class="rail-heading">New Releases</div>
+                <div class="nodes-vertical-stack" id="newReleasesContainer"></div>
+            </div>
+            <div>
+                <div class="rail-heading">Trending Today</div>
+                <div class="nodes-vertical-stack" id="trendingContainer"></div>
+            </div>
+        </div>
+
+        <div class="center-chat-canvas">
+            <div class="chat-scroll-area" id="chatScrollArea"></div>
+            
+            <div class="typing-indicator-row" id="typingIndicator">
+                <span id="typingText" style="margin-right:6px;">Agent is analyzing</span>
+                <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+            
+            <div class="autocomplete-dropdown" id="autoDropdown"></div>
+
+            <div class="input-dock-panel">
+                <div style="display: flex; gap: 8px; margin-bottom: 2px;">
+                    <div class="prompt-suggestion-chip" style="background: rgba(0, 224, 84, 0.08); border-color: rgba(0, 224, 84, 0.15); color: var(--lb-green);" onclick="executeSystemGreeting('HELLO_HANDSHAKE')">👋 Say Hello</div>
+                    <div class="prompt-suggestion-chip" style="background: rgba(255, 68, 68, 0.08); border-color: rgba(255, 68, 68, 0.15); color: #ff4444;" onclick="executeSystemGreeting('GOODBYE_SIGNOFF')">🚪 Power Down</div>
+                </div>
+
+                <div class="input-pill-container">
+                    <input type="text" id="userTextInput" placeholder="Ask: “cast of Oppenheimer” • “director of Interstellar” • “Avatar overview”" autocomplete="off">
+                    <button class="premium-action-btn" onclick="handleSendCycle()">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-pod-rail">
+            <div class="rail-heading">Selected Movie Art</div>
+            <div class="ambient-plasma-card">
+                <div class="organic-blur-blob"></div>
+                <div class="plasma-content-overlay" id="fluidWidgetText">
+                    <div class="poster-frame" id="widgetPoster" onclick="openLightboxModal()"></div>
+                    <div id="widgetMovieTitle">System Standing By</div>
+                </div>
+            </div>
+
+            <div class="stats-deck">
+                <div class="rail-heading">Node Properties</div>
+                <div class="stat-pod-row"><span class="stat-pod-lbl">Runtime / Revenue</span><span class="stat-pod-data" id="widgetRuntime">N/A</span></div>
+                <div class="stat-pod-row"><span class="stat-pod-lbl">TMDb Vote Context</span><span class="stat-pod-data" id="widgetVotes">N/A</span></div>
+            </div>
+            
+            <div class="stats-deck-mem">
+                <div class="rail-heading">Agent Context Memory</div>
+                <div class="stat-pod-row" style="padding: 10px 15px;"><span class="stat-pod-lbl" style="font-size:10px;">Last Traversed</span><span id="memLastMovie" style="font-size:11px; font-weight:600; color:var(--gold-glow);">None</span></div>
+                <div class="stat-pod-row" style="padding: 10px 15px;"><span class="stat-pod-lbl" style="font-size:10px;">Favorite Star</span><span id="memFavActor" style="font-size:11px; font-weight:600; color:var(--lb-green);">None</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="actor-modal-sheet" id="actorModalSheet">
+        <div class="actor-modal-container">
+            <button class="close-modal-btn" onclick="closeActorSheet()">✕</button>
+            <div class="actor-header-row">
+                <div class="actor-pfp-frame" id="actorModalPfp"></div>
+                <div>
+                    <h3 id="actorModalName" style="color: #fff; font-size: 20px; margin-bottom: 2px;">Name</h3>
+                    <p id="actorModalDept" style="color: var(--gold-glow); font-size: 12px; font-weight: bold; text-transform: uppercase;">Department</p>
+                </div>
+            </div>
+            <div class="actor-biometrics" id="actorModalBiometrics"></div>
+        </div>
+    </div>
+
+    <div class="lightbox-modal" id="lightboxModal" onclick="closeLightboxModal()">
+        <img class="lightbox-img" id="lightboxImg" src="" alt="Zoomed Poster">
+    </div>
+
+<script>
+    // DYNAMIC ENVIRONMENT VARIABLE 
+    const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjYWVkMmVlODk1YjMxOGQzYzM0MTI5MGIzMTMwZTA0ZiIsIm5iZiI6MTc3OTAzMjg4Ni44MDgsInN1YiI6IjZhMDllMzM2MjEwZjUwNDhmMmRiMmY4YiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.IPFL9FggWMy4SpqpGptwllcwE7MKNje3kPLxNmviyoo";
+
+    const chatScrollArea = document.getElementById('chatScrollArea');
+    const userTextInput = document.getElementById('userTextInput');
+    const newReleasesContainer = document.getElementById('newReleasesContainer');
+    const trendingContainer = document.getElementById('trendingContainer');
+    const fluidWidgetText = document.getElementById('fluidWidgetText');
+    const widgetMovieTitle = document.getElementById('widgetMovieTitle');
+    const widgetPoster = document.getElementById('widgetPoster');
+    const widgetRuntime = document.getElementById('widgetRuntime');
+    const widgetVotes = document.getElementById('widgetVotes');
+    const autoDropdown = document.getElementById('autoDropdown');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const typingText = document.getElementById('typingText');
+    
+    const memLastMovie = document.getElementById('memLastMovie');
+    const memFavActor = document.getElementById('memFavActor');
+
+    const actorModalSheet = document.getElementById('actorModalSheet');
+    const actorModalPfp = document.getElementById('actorModalPfp');
+    const actorModalName = document.getElementById('actorModalName');
+    const actorModalDept = document.getElementById('actorModalDept');
+    const actorModalBiometrics = document.getElementById('actorModalBiometrics');
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImg');
+
+    let localGlobalMovieCache = [];
+    let typingTimer;
+    
+    let activeSessionMovieContext = null; 
+    let memoryCacheLog = {
+        searchedTitles: [],
+        clickedPerformers: [],
+        lastIntentProfile: "Handshake"
+    };
+
+    const apiOptions = { method: 'GET', headers: { accept: 'application/json', Authorization: `Bearer ${TMDB_TOKEN}` } };
+
+    function extractIntent(text) {
+        const lower = text.toLowerCase().trim();
+        const isCast = /\b(cast|actors?|starring|performers|stars)\b/.test(lower);
+        const isDirector = /\b(director|directed|filmmaker)\b/.test(lower);
+        const isContextualOverview = /\b(whats it about|what is it about|overview|synopsis|plot|story|about)\b/.test(lower);
+        const isRating = /\b(rating|score|votes?|user rating|ratings)\b/.test(lower);
+        const isFinancials = /\b(budget|revenue|box office|money|cost)\b/.test(lower);
+        const isReviews = /\b(reviews?|critiques|thoughts)\b/.test(lower);
+        const isRecommendations = /\b(recommend|similar|like this|suggestions?|recommend movies like)\b/.test(lower);
+
+        const cleaned = text
+            .replace(/recommend movies like/gi, '')
+            .replace(/whats it about|what is it about|who directed it|tell me the cast|give me similar movies|what is the rating|user rating|critic score|box office|cast of|who stars in|who acted in|actors in|starring|director of|who directed|directed by|overview of|overview|synopsis|info on|tell me about|ratings for|rating of|rating|score|budget|revenue|reviews of|reviews|recommendations for|similar to|suggestions for/gi, '')
+            .trim();
+
+        return { cleaned, isCast, isDirector, isContextualOverview, isRating, isFinancials, isReviews, isRecommendations };
+    }
+
+    async function loadDashboardFeeds() {
+        try {
+            const [nowPlayingRes, trendingRes] = await Promise.all([
+                fetch('https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1', apiOptions),
+                fetch('https://api.themoviedb.org/3/trending/movie/day?language=en-US', apiOptions)
+            ]);
+            const nowPlayingData = await nowPlayingRes.json();
+            const trendingData = await trendingRes.json();
+            
+            const rawReleases = nowPlayingData.results.slice(0, 3);
+            const rawTrending = trendingData.results.slice(0, 4);
+            
+            const hardcodedMichaelMockNode = {
+                title: "Michael",
+                release_date: "2026-04-24",
+                vote_average: 8.4,
+                id: "biopic_featured_michael"
+            };
+
+            const releasesSlice = [hardcodedMichaelMockNode, ...rawReleases];
+            const trendingSlice = rawTrending;
+
+            localGlobalMovieCache = [...releasesSlice, ...trendingSlice];
+            newReleasesContainer.innerHTML = releasesSlice.map(m => createMovieNodeHtml(m)).join('');
+            trendingContainer.innerHTML = trendingSlice.map(m => createMovieNodeHtml(m)).join('');
+        } catch (err) { handleNetworkFailureState(); }
+    }
+
+    function createMovieNodeHtml(m) {
+        return `<div class="interactive-movie-node" onclick="triggerDirectQuery('${m.title.replace(/'/g, "\\'")}')"><div class="node-details"><span class="node-title">${m.title}</span><span class="node-subtext">Release: ${m.release_date?m.release_date.substring(0,4):'N/A'}</span></div><span class="node-rating-pill">${m.vote_average?m.vote_average.toFixed(1):'0.0'}</span></div>`;
+    }
+
+    function appendMessageRow(sender, text, flowType, contextualPromptHTML = "") {
+        const row = document.createElement('div');
+        row.className = `bubble-row ${flowType}-flow`;
+        
+        // EMOJI COMPONENTS
+        const initial = sender === 'YOU' ? '👤' : '🎥';
+        
+        row.innerHTML = `<div class="sphere-avatar">${initial}</div><div class="bubble-text-wrapper"><div class="identity-lbl">${sender}</div><div class="bubble-markup-box">${text}${contextualPromptHTML}</div></div>`;
+        chatScrollArea.appendChild(row);
+        chatScrollArea.scrollTop = chatScrollArea.scrollHeight;
+    }
+
+    function triggerThinkingState(show, CustomLabelText = "Agent is analyzing") {
+        if(show) { typingText.textContent = CustomLabelText; typingIndicator.style.display = 'flex'; chatScrollArea.scrollTop = chatScrollArea.scrollHeight; }
+        else { typingIndicator.style.display = 'none'; }
+    }
+
+    function executeSystemGreeting(systemFlagCode) {
+        if (systemFlagCode === 'HELLO_HANDSHAKE') {
+            appendMessageRow('YOU', "Hi! Hello there.", 'user');
+            triggerThinkingState(true, "Configuring dashboard metrics");
+            setTimeout(() => {
+                triggerThinkingState(false);
+                appendMessageRow('LETTERBOTD', `Welcome back to your personal screening room! 🍿 I'm connected directly to global film databases and ready to explore. Give me a movie title name or choose a dynamic node from the sidebar rail pods!`, 'bot');
+            }, 400);
+        } else if (systemFlagCode === 'GOODBYE_SIGNOFF') {
+            appendMessageRow('YOU', "Goodbye! Logging off.", 'user');
+            triggerThinkingState(true, "Powering down workspace engines");
+            setTimeout(() => {
+                triggerThinkingState(false);
+                appendMessageRow('LETTERBOTD', `Projector lamp powered down safely. 🎬 Enjoy your evening, and see you at the next cinematic event tracker session!`, 'bot');
+            }, 400);
+        }
+    }
+
+    async function processHybridQueryEngine(userInputString) {
+        const { cleaned, isCast, isDirector, isContextualOverview, isRating, isFinancials, isReviews, isRecommendations } = extractIntent(userInputString);
+        let searchQuery = cleaned || userInputString;
+
+        appendMessageRow('YOU', userInputString, 'user');
+        autoDropdown.style.display = 'none';
+
+        let isPillActionActive = (isCast || isDirector || isContextualOverview || isRating || isFinancials || isReviews || isRecommendations);
+        let isSearchQueryNoise = (!cleaned || searchQuery.toLowerCase() === "it" || searchQuery.toLowerCase() === "the" || searchQuery.toLowerCase() === "give me" || searchQuery.length < 3);
+        
+        if (isPillActionActive && isSearchQueryNoise && activeSessionMovieContext) {
+            searchQuery = activeSessionMovieContext.title;
+        }
+
+        if (searchQuery.length < 2) {
+            triggerThinkingState(true, "Evaluating input boundaries");
+            setTimeout(() => {
+                triggerThinkingState(false);
+                appendMessageRow('LETTERBOTD', `I couldn't isolate a valid movie context. 🔍 Try structural queries like: <span class="accent-orange">"Tell me about Inception"</span> or select an option from the side rails!`, 'bot');
+            }, 400);
+            return;
+        }
+
+        triggerThinkingState(true, `Processing movie metrics for "${searchQuery}"`);
+
+        try {
+            const searchRes = await fetchTransformNode(searchQuery);
+            triggerThinkingState(false);
+
+            if (!searchRes) return;
+            const [creditsData, detailsData, reviewsData, similarData] = searchRes;
+            
+            activeSessionMovieContext = detailsData;
+            updateCrossSessionMemoryGrip(detailsData.title, null, userInputString);
+
+            const directorNode = creditsData.crew.find(c => c.job === "Director");
+            const directorHTML = directorNode ? `<span class="entity-chip" onclick="launchProfileSheet(${directorNode.id}, '${detailsData.title.replace(/'/g, "\\'")}')">${directorNode.name}</span>` : "Unlisted";
+            const topPerformersHTML = creditsData.cast.slice(0, 3).map(c => `<span class="entity-chip" onclick="launchProfileSheet(${c.id}, '${detailsData.title.replace(/'/g, "\\'")}')">${c.name}</span>`).join(', ');
+
+            if (detailsData.poster_path) {
+                widgetPoster.style.backgroundImage = `url('https://image.tmdb.org/t/p/w500${detailsData.poster_path}')`;
+                widgetPoster.style.display = 'block';
+            } else { widgetPoster.style.display = 'none'; }
+            
+            widgetMovieTitle.innerHTML = `${detailsData.title}<br><span style="font-size:10px; font-weight:400; color:var(--text-dim);">${detailsData.release_date?detailsData.release_date.substring(0,4):'N/A'}</span>`;
+            widgetRuntime.textContent = `${detailsData.runtime?detailsData.runtime+'m':'N/A'} / ${detailsData.revenue?'$'+(detailsData.revenue/1000000).toFixed(1)+'M':'$0.0M'}`;
+            widgetVotes.textContent = `${detailsData.vote_average.toFixed(1)} (${detailsData.vote_count} users)`;
+
+            let botResponseMarkdown = "";
+            
+            let standardPromptsHTML = "<div class='followup-prompt-container'>" +
+                "<div class='prompt-suggestion-chip' onclick='executeQuickPrompt(\"Tell me the cast\")'>🎭 Core Cast</div>" +
+                "<div class='prompt-suggestion-chip' onclick='executeQuickPrompt(\"Who directed it?\")'>🎬 Director Node</div>" +
+                "<div class='prompt-suggestion-chip' onclick='executeQuickPrompt(\"What is the rating\")'>📈 Rating Stats</div>" +
+                "<div class='prompt-suggestion-chip' onclick='executeQuickPrompt(\"Give me similar movies\")'>🌌 Recommend Engine</div>" +
+            "</div>";
+
+            if (isCast) {
+                const castLinkedHTML = creditsData.cast.slice(0, 5).map(c => `<span class="entity-chip" onclick="launchProfileSheet(${c.id}, '${detailsData.title.replace(/'/g, "\\'")}')">${c.name}</span> (${c.character})`).join(', ');
+                botResponseMarkdown = `The primary acting core mapping for <span class="accent-orange">${detailsData.title}</span> features:\n\n🎭 ${castLinkedHTML}.\n\nClick any star profile to load interactive biometric data sheets!`;
+            } else if (isDirector) {
+                botResponseMarkdown = `<span class="accent-orange">${detailsData.title}</span> was envisioned under the directorial lens of the auteur filmmaker ${directorHTML}.`;
+            } else if (isRating) {
+                botResponseMarkdown = `Real-time database review telemetry for <span class="accent-orange">${detailsData.title}</span> maps a community ranking index weight of <span class="accent-hl">${detailsData.vote_average.toFixed(1)} / 10</span> based on <span class="accent-hl">${detailsData.vote_count}</span> global user logs.`;
+            } else if (isFinancials) {
+                botResponseMarkdown = `Financial structural summary for <span class="accent-orange">${detailsData.title}</span>:\n\n💰 <span class="accent-hl">Production Budget Grid:</span> $${(detailsData.budget/1000000).toFixed(1)}M\n📈 <span class="accent-hl">Box Office Gross Revenue:</span> $${(detailsData.revenue/1000000).toFixed(1)}M`;
+            } else if (isReviews) {
+                const hasRev = reviewsData.results && reviewsData.results.length > 0;
+                botResponseMarkdown = `Review profile scorecard matching <span class="accent-orange">${detailsData.title}</span>:\n\n📊 <span class="accent-hl">User Weight:</span> ${detailsData.vote_average.toFixed(1)}/10\n📝 <span class="accent-hl">Top Critique Entry:</span><div class="review-card-wrapper">${hasRev ? reviewsData.results[0].content : 'No text feedback strings logged on local endpoints.'}</div>`;
+            } else if (isRecommendations) {
+                const recsList = similarData.results.slice(0, 3).map(m => `▪ <span class="entity-chip" onclick="triggerDirectQuery('${m.title.replace(/'/g, "\\'")}')">${m.title}</span> (${m.release_date?m.release_date.substring(0,4):'N/A'}) — Rating: ${m.vote_average.toFixed(1)}`).join('\n');
+                botResponseMarkdown = `Deploying automated film recommendation clusters for fans of <span class="accent-orange">${detailsData.title}</span>:\n\n${recsList || 'No comparable cluster profiles located inside network parameters.'}`;
+            } else if (isContextualOverview) {
+                botResponseMarkdown = `Plot synopsis statement matching the master log for <span class="accent-orange">${detailsData.title}</span>:\n\n"${detailsData.overview || 'No textual logs compiled.'}"`;
+            } else {
+                const targetRecFilm = similarData.results[0] ? similarData.results[0].title : "similar productions";
+                const targetRecFilmHTML = `<span class="entity-chip" onclick="triggerDirectQuery('${targetRecFilm.replace(/'/g, "\\'")}')">${targetRecFilm}</span>`;
+                
+                botResponseMarkdown = `Comprehensive File Intelligence Summary: <span class="accent-orange">${detailsData.title}</span> (${detailsData.release_date?detailsData.release_date.substring(0,4):'N/A'})\n\n🎬 <span class="accent-hl">Director Context:</span> ${directorHTML}\n🎭 <span class="accent-hl">Core Cast Nodes:</span> ${topPerformersHTML}\n📈 <span class="accent-hl">Database Weight:</span> ${detailsData.vote_average.toFixed(1)}/10 (${detailsData.vote_count} reviews)\n\n📖 <span class="accent-hl">Overview Synopsis:</span>\n"${detailsData.overview || 'No textual overview logs mapped.'}"\n\n💡 <span class="accent-orange">Recommendation Engine Hint:</span> Since you traversed this file track, click to explore ${targetRecFilmHTML}!`;
+            }
+
+            appendMessageRow('LETTERBOTD', botResponseMarkdown, 'bot', standardPromptsHTML);
+
+        } catch (error) { triggerThinkingState(false); handleNetworkFailureState(); }
+    }
+
+    async function fetchTransformNode(searchQuery) {
+        const searchRes = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(searchQuery)}&include_adult=false&language=en-US&page=1`, apiOptions);
+        const searchData = await searchRes.json();
+        
+        if (!searchData.results || searchData.results.length === 0) {
+            triggerThinkingState(false);
+            appendMessageRow('LETTERBOTD', `I couldn't locate a verified movie node path matching "${searchQuery}". Try appending the specific release year!`, 'bot');
+            return null;
+        }
+
+        const sortedResults = searchData.results.sort((a, b) => b.popularity - a.popularity);
+        const targetMovie = sortedResults[0];
+
+        const [creditsRes, detailsRes, reviewsRes, similarRes] = await Promise.all([
+            fetch(`https://api.themoviedb.org/3/movie/${targetMovie.id}/credits?language=en-US`, apiOptions),
+            fetch(`https://api.themoviedb.org/3/movie/${targetMovie.id}?language=en-US`, apiOptions),
+            fetch(`https://api.themoviedb.org/3/movie/${targetMovie.id}/reviews?language=en-US&page=1`, apiOptions),
+            fetch(`https://api.themoviedb.org/3/movie/${targetMovie.id}/similar?language=en-US&page=1`, apiOptions)
+        ]);
+
+        return [await creditsRes.json(), await detailsRes.json(), await reviewsRes.json(), await similarRes.json()];
+    }
+
+    function updateCrossSessionMemoryGrip(movieTitle = null, actorName = null, intentCode = "General") {
+        if(movieTitle && !memoryCacheLog.searchedTitles.includes(movieTitle)) {
+            memoryCacheLog.searchedTitles.unshift(movieTitle);
+            memLastMovie.textContent = movieTitle.length > 18 ? movieTitle.substring(0,16)+'..' : movieTitle;
+        }
+        if(actorName) {
+            memoryCacheLog.clickedPerformers.unshift(actorName);
+            memFavActor.textContent = actorName;
+        }
+        memoryCacheLog.lastIntentProfile = intentCode;
+    }
+
+    function handleNetworkFailureState() {
+        const structuralFallbackHTML = `
+            <div class="followup-prompt-container" style="margin-top:10px;">
+                <div class="prompt-suggestion-chip" onclick="triggerDirectQuery('Oppenheimer')">🔄 Retry via Oppenheimer</div>
+                <div class="prompt-suggestion-chip" onclick="triggerDirectQuery('Michael')">🔄 Retry via Michael</div>
+            </div>
+        `;
+        appendMessageRow('LETTERBOTD', `⚠️ Network node communication timeout encountered. Let's restart the loop or verify your local port connectivity!`, 'bot', structuralFallbackHTML);
+    }
+
+    async function launchProfileSheet(personId, structuralMovieSourceContext) {
+        triggerThinkingState(true, "Fetching biometric actor card logs");
+        try {
+            const res = await fetch("https://api.themoviedb.org/3/person/" + personId + "?language=en-US", apiOptions);
+            const person = await res.json();
+            triggerThinkingState(false);
+
+            actorModalName.textContent = person.name;
+            actorModalDept.textContent = person.known_for_department || "Acting";
+            
+            updateCrossSessionMemoryGrip(null, person.name, "Actor Click");
+
+            if (person.profile_path) { 
+                actorModalPfp.style.backgroundImage = "url('https://image.tmdb.org/t/p/w500" + person.profile_path + "')"; 
+            } else { 
+                actorModalPfp.style.backgroundImage = 'none'; 
+            }
+
+            const bioText = person.biography ? person.biography.split('.').slice(0, 3).join('.') + '.' : "No detailed biographical profile found on database servers.";
+            
+            let coreLayoutHTML = "<p>📍 <strong>Place of Birth:</strong> " + (person.place_of_birth || 'N/A') + "</p>" +
+                                 "<p>📅 <strong>Birthday:</strong> " + (person.birthday || 'N/A') + "</p>" +
+                                 "<p style='margin-top:12px; color:#9ab; font-size:13px; line-height:1.6;'>" + bioText + "</p>";
+
+            if (structuralMovieSourceContext) {
+                let cleanedContext = structuralMovieSourceContext.replace(/'/g, "\\'");
+                coreLayoutHTML += "<div class='prompt-suggestion-chip' style='margin-top:14px; text-align:center; display:inline-block;' onclick='closeActorSheet(); triggerDirectQuery(\"recommend movies like " + cleanedContext + "\")'>🌌 Explore recommendations like " + structuralMovieSourceContext + "</div>";
+            }
+
+            actorModalBiometrics.innerHTML = coreLayoutHTML;
+            actorModalSheet.style.display = 'flex';
+        } catch (err) { triggerThinkingState(false); handleNetworkFailureState(); }
+    }
+
+    function closeActorSheet() { actorModalSheet.style.display = 'none'; }
+    
+    function openLightboxModal() {
+        if (!activeSessionMovieContext || !activeSessionMovieContext.poster_path) return;
+        lightboxImg.src = `https://image.tmdb.org/t/p/original${activeSessionMovieContext.poster_path}`;
+        lightboxModal.style.display = 'flex';
+    }
+    function closeLightboxModal() { lightboxModal.style.display = 'none'; }
+
+    function switchNavTab(tabTarget, element) {
+        document.querySelectorAll('#mainNavigationTabs span').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        if (tabTarget === 'hub') { 
+            appendMessageRow('LETTERBOTD', "Switched to Cinephile Hub. Active network connection grids standing by to map analytics.", 'bot'); 
+        } 
+        else if (tabTarget === 'trends') { 
+            appendMessageRow('LETTERBOTD', `📊 Global Trends Array Node Report:
+
+1. 📈 INDEPENDENT MARKET SHIFT: Metadata logs point to a significant spike in biometric searches centering on biographical slate releases.
+2. 🎟️ REVENUE RECOVERY: Analytical cross-session indicators map record-high engagement volumes across premium IMAX presentation specs.
+3. 🌌 USER PROFILE PREFERENCES: Auteur-driven stylistic blueprints are outperforming traditional tentpole franchise metrics on active tracker logs.`, 'bot'); 
+        } 
+        else if (tabTarget === 'logs') { 
+            appendMessageRow('LETTERBOTD', `📋 Connection Stream Logs:\n\n[CACHE] Personalization array loaded successfully.\n[STATE] Memory Buffer Target: ${activeSessionMovieContext ? activeSessionMovieContext.title : 'None active'}\n[STATUS] Regular Expression routing profiles running stable on port 5500.`, 'bot'); 
+        }
+    }
+
+    userTextInput.addEventListener('input', () => {
+        clearTimeout(typingTimer);
+        const val = userTextInput.value.trim();
+        const { cleaned } = extractIntent(val);
+        const searchVal = cleaned || val;
+
+        if (searchVal.length < 2) { autoDropdown.style.display = 'none'; return; }
+
+        typingTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(searchVal)}&include_adult=false&language=en-US&page=1`, apiOptions);
+                const data = await res.json();
+                if (data.results && data.results.length > 0) {
+                    autoDropdown.innerHTML = data.results.slice(0, 5).sort((a,b) => b.popularity - a.popularity).map(m => `
+                        <div class="autocomplete-row" onclick="selectSuggestion('${m.title.replace(/'/g, "\\'")}')"><span>${m.title}</span><span class="autocomplete-year">${m.release_date?m.release_date.substring(0,4):'N/A'}</span></div>
+                    `).join('');
+                    autoDropdown.style.display = 'flex';
+                } else { autoDropdown.style.display = 'none'; }
+            } catch (err) {}
+        }, 150);
+    });
+
+    function selectSuggestion(title) { userTextInput.value = title; autoDropdown.style.display = 'none'; handleSendCycle(); }
+    function triggerDirectQuery(title) { processHybridQueryEngine(title); }
+    function executeQuickPrompt(promptText) { processHybridQueryEngine(promptText); }
+
+    function handleSendCycle() {
+        const val = userTextInput.value.trim(); if (!val) return;
+        userTextInput.value = ''; processHybridQueryEngine(val);
+    }
+
+    userTextInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendCycle(); });
+    document.addEventListener('click', (e) => { if (e.target !== userTextInput) autoDropdown.style.display = 'none'; });
+
+    window.onload = () => {
+        loadDashboardFeeds();
+        appendMessageRow('LETTERBOTD', `Welcome to your personal screening room! 🍿 I'm connected directly to global film databases and ready to explore. Ask me about a movie's plot, check out a full cast list, or select a trending title from the sidebar to begin!`, 'bot');
+    };
+</script>
+</body>
+</html>
